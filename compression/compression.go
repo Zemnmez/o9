@@ -81,7 +81,7 @@ func (w *writer) flush() {
 	}
 }
 
-var Middleware = fweight.MiddlewareFunc(func(h http.Handler) http.Handler {
+var Middleware = o9.MiddlewareFunc(func(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var flush func()
 

@@ -31,7 +31,7 @@ type RouteHandler struct {
 */
 var NotFound http.Handler = http.HandlerFunc(func(rw http.ResponseWriter, rq *http.Request) {
 	rw.Header().Add("Content-Type", "text/plain")
-	rw.WriteHeader(int(fweight.StatusNotFound))
+	rw.WriteHeader(int(o9.StatusNotFound))
 	fmt.Fprintf(
 		rw,
 		`A resource could not be found to match your request.
@@ -57,7 +57,7 @@ var NotFound http.Handler = http.HandlerFunc(func(rw http.ResponseWriter, rq *ht
 var HandleRecovery RecoverHandler = RecoverHandlerFunc(func(i interface{}) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, rq *http.Request) {
 		rw.Header().Add("Content-Type", "text/plain")
-		rw.WriteHeader(int(fweight.StatusInternalServerError))
+		rw.WriteHeader(int(o9.StatusInternalServerError))
 		fmt.Fprintf(
 			rw,
 			`An Internal Server Error was encountered while handling your request:
@@ -88,14 +88,14 @@ func (r RecoverHandlerFunc) ServeRecover(i interface{}) http.Handler {
 
 func (r RouteHandler) HandleNotFound(rq *http.Request) http.Handler {
 	if r.NotFound == nil {
-		panic(fweight.Err(fweight.StatusNotFound))
+		panic(o9.Err(o9.StatusNotFound))
 	}
 	return r.NotFound
 }
 
 func (r RouteHandler) HandleInternalServerError(i interface{}) http.Handler {
 	if r.HandleInternalServerError == nil {
-		panic(fweight.Err(fweight.StatusInternalServerError))
+		panic(o9.Err(o9.StatusInternalServerError))
 	}
 	return r.Recover.ServeRecover(i)
 }

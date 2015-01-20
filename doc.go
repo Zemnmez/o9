@@ -1,4 +1,2 @@
-//Framework Eight is an HTTP framework for go, focusing on
-//speed, semantics and a modular interface for common web
-//functions.
-package fweight
+//o9 is a framework
+package o9 // import "o9.ms"
