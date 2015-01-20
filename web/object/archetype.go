@@ -4,29 +4,10 @@ import (
 	"github.com/TShadwell/fweight/route"
 	"log"
 	"net/http"
-	"sync"
 )
-
-var once sync.Once
-
-var DefaultArchetype = Archetype{
-	ContentMarshaler: ContentMarshaler{
-		"":                 Json,
-		"application/json": Json,
-		"application/xml":  Xml,
-	},
-}
 
 type Archetype struct {
 	ContentMarshaler
-}
-
-func RouterFunc(g GetterFunc) *HTTPHandler {
-	return DefaultArchetype.Router(GetterFunc(g))
-}
-
-func Router(g Getter) *HTTPHandler {
-	return DefaultArchetype.Router(g)
 }
 
 func (a *Archetype) Handler() Handler {
