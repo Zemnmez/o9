@@ -2,9 +2,9 @@ package route
 
 import (
 	"fmt"
-	"github.com/TShadwell/fweight"
 	"log"
 	"net/http"
+	"o9.ms/web/fweight"
 	deb "runtime/debug"
 )
 

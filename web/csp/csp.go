@@ -1,10 +1,10 @@
 //Package csp implments Content-Security-Policy, a HTTP header
 //designed to mitigate XSS attacks.
-package csp
+package csp //import "o9.ms/web/csp"
 
 import (
-	"github.com/TShadwell/fweight/route"
 	"net/http"
+	"o9.ms/web/route"
 	"reflect"
 	"strings"
 )

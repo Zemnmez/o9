@@ -1,4 +1,4 @@
-package route
+package route // import "o9.ms/web/route"
 
 import (
 	"net/http"

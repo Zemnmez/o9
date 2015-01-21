@@ -1,11 +1,11 @@
-package compression
+package compress // import "o9.ms/web/compression"
 
 import (
 	"compress/flate"
 	"compress/gzip"
-	"github.com/TShadwell/fweight"
 	"io"
 	"net/http"
+	"o9.ms/web"
 	"strings"
 	"sync"
 )

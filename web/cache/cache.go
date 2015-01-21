@@ -1,4 +1,4 @@
-package cache
+package cache // import "o9.ms/web/cache"
 
 import (
 	"io/ioutil"

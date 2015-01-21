@@ -1,9 +1,9 @@
 package object
 
 import (
-	"github.com/TShadwell/fweight/route"
 	"log"
 	"net/http"
+	"o9.ms/web/route"
 )
 
 type Archetype struct {

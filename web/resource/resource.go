@@ -1,10 +1,10 @@
 //Package resource provides some boilerplate code
 //for serving static resources.
-package resource
+package resource // import "o9.ms/web/resource"
 
 import (
-	"github.com/TShadwell/fweight/route"
 	"net/http"
+	"o9.ms/web/route"
 	"strings"
 	"time"
 )

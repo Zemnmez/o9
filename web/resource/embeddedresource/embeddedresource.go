@@ -66,7 +66,7 @@ func run(w io.Writer) (chn <-chan interface{}) {
 		_, err := fmt.Fprintf(w,
 			`package %s
 
-import "github.com/TShadwell/fweight/resource"
+import "o9.ms/web/resource"
 import "time"
 
 func resourceWillTime(s string) (t time.Time) { t, _ = time.Parse(time.RFC3339, s); return }
