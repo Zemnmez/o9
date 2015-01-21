@@ -4,11 +4,11 @@ package pkg // import "o9.ms/web/service/pkg"
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"html/template"
 	"mime"
 	"net/http"
 	"net/url"
-	"o9.ms/web/object"
 	"o9.ms/web/route"
 	"strings"
 )
@@ -18,15 +18,19 @@ func init() {
 }
 
 var DefaultHandleTempl = template.Must(template.New("").Parse(
-	"<!DOCTYPE HTML><head><title>{{.Host}}{{.URL.Path}}</title></head>" +
-		"<body>This is a Go package. <a href='//godoc.org/{{.Host}}{{.URL.Path}}>" +
+	"<!DOCTYPE HTML><head><title>{{.Host}}{{.URL.Path}}</title>" +
+		`<meta name="go-import" content="{{.Host}}{{.URL.Path}} git https://github.com/{{.Host}}{{.URL.Path}}"></head>` +
+		"<body>This is a Go package. <a href='//godoc.org/{{.Host}}{{.URL.Path}}'>" +
 		"godoc.org/{{.Host}}{{.URL.Path}}</a>" +
-		"<script>document.location='//{{.Host}}{{.URL.Path}}'</script></body>",
+		"<script>document.location='//godoc.org/{{.Host}}{{.URL.Path}}'</script></body>",
 ))
 
 var DefaultFileHandler = func(h *Handler) http.Handler {
-	return http.HandleFunc(func(rw http.ResponseWriter, rq *http.Request) {
-		rw.Header().Set("Location", h.GithubURL+"/blob/master/" + +rq.URL.Path)
+	return http.HandlerFunc(func(rw http.ResponseWriter, rq *http.Request) {
+		rw.Header().Set(
+			"Location",
+			h.GithubURL.String()+"/blob/master/"+rq.URL.Path,
+		)
 	})
 }
 
@@ -39,7 +43,7 @@ type Handler struct {
 	FileHandler func(h *Handler, rq *http.Request) http.Handler
 
 	//root URL of the Github repo
-	GithubURL url.URL
+	GithubURL *url.URL
 
 	//built by the git repo
 	route.NoExtPath
@@ -50,6 +54,8 @@ type Handler struct {
 
 func (h *Handler) handlePackage(rw http.ResponseWriter, rq *http.Request) {
 	rw.Header().Set("Content-Type", "text/html;charset=utf-8")
+	rw.Header().Set("Refresh", "0; url=//godoc.org/")
+
 	if h.Template == nil {
 		h.Template = DefaultHandleTempl
 	}
@@ -64,16 +70,20 @@ func (h *Handler) handlePackage(rw http.ResponseWriter, rq *http.Request) {
 
 func (h *Handler) Init() (err error) {
 	fh := route.RouterFunc(func(rq *http.Request) route.Router {
-		return h.FileHandler(h, rq)
+		if h := h.FileHandler(h, rq); h != nil {
+			return route.Handle(h)
+		}
+
+		return nil
 	})
 
-	if h.GithubURL == "" {
+	if h.GithubURL == nil {
 		return errors.New("github url should not be empty")
 	}
 
-	if h.NoExtPath == nil {
-		h.NoExtPath = make(route.NoExtPath)
-	}
+	h.NoExtPath = make(route.NoExtPath)
+
+	h.NoExtPath[""] = route.HandleFunc(h.handlePackage)
 
 	var r struct {
 		Truncated bool `json:"truncated"`
@@ -84,7 +94,7 @@ func (h *Handler) Init() (err error) {
 	}
 
 	tree, err := http.Get(
-		"https://api.github.com/repos/" +
+		"https://api.github.com/repos" +
 			h.GithubURL.Path +
 			"/git/trees/master?recursive=1",
 	)
@@ -95,16 +105,19 @@ func (h *Handler) Init() (err error) {
 
 	defer tree.Body.Close()
 
+	if tree.StatusCode != 200 {
+		return fmt.Errorf("%s -- %s", tree.Status, tree.Request.URL.String())
+	}
+
 	if err = json.NewDecoder(tree.Body).Decode(&r); err != nil {
 		return
 	}
 
-	if Truncated {
+	if r.Truncated {
 		return errors.New("github output is truncated because the repo is too large")
 	}
 
 	for _, v := range r.Tree {
-		cursor := h.NoExtPath
 
 		s := strings.Split(v.Path, "/")
 
@@ -115,19 +128,21 @@ func (h *Handler) Init() (err error) {
 			}
 		}
 
-		c := h.NoExtPath
+		var c route.Router = h.NoExtPath
 
 		for _, f := range s[:len(s)-1] {
-			if c[f] == nil {
-				c[f] = make(route.NoExtPath)
+			cp := c.(route.NoExtPath)
+			if cp[f] == nil {
+				cp[f] = make(route.NoExtPath)
 			}
 
-			c = c[f]
+			c = cp[f]
 		}
 
 		//add the last node to the final in our traversal (c)
-		c[s[len(s)-1]] = end
+		c.(route.NoExtPath)[s[len(s)-1]] = end
 	}
+	return
 }
 
 func (h *Handler) WebHook(rq *http.Request) {

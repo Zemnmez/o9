@@ -1,4 +1,4 @@
-package compress // import "o9.ms/web/compression"
+package compress // import "o9.ms/web/compress"
 
 import (
 	"compress/flate"

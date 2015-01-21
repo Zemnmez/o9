@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"o9.ms/web/fweight"
+	"o9.ms/web"
 	deb "runtime/debug"
 )
 
