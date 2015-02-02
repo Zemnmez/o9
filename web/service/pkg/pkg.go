@@ -25,7 +25,7 @@ var DefaultHandleTempl = template.Must(template.New("").Parse(
 		"<script>document.location='//godoc.org/{{.Host}}{{.URL.Path}}'</script></body>",
 ))
 
-var DefaultFileHandler = func(h *Handler) http.Handler {
+var DefaultFileHandler = func(h *Handler, rq *http.Request) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, rq *http.Request) {
 		rw.Header().Set(
 			"Location",
@@ -69,12 +69,12 @@ func (h *Handler) handlePackage(rw http.ResponseWriter, rq *http.Request) {
 }
 
 func (h *Handler) Init() (err error) {
-	fh := route.RouterFunc(func(rq *http.Request) route.Router {
-		if h := h.FileHandler(h, rq); h != nil {
-			return route.Handle(h)
-		}
+	if h.FileHandler == nil {
+		h.FileHandler = DefaultFileHandler
+	}
 
-		return nil
+	fh := route.RouterFunc(func(rq *http.Request) route.Router {
+		return route.Handle(h.FileHandler(h, rq))
 	})
 
 	if h.GithubURL == nil {
@@ -142,6 +142,8 @@ func (h *Handler) Init() (err error) {
 		//add the last node to the final in our traversal (c)
 		c.(route.NoExtPath)[s[len(s)-1]] = end
 	}
+
+	fmt.Printf("\n--%+v--\n", h.NoExtPath)
 	return
 }
 
